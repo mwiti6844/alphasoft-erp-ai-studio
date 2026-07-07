@@ -1,0 +1,56 @@
+# Golden cases — POS analytics (restaurant + retail).
+# STATUS: tools do not exist yet (WP4: pos_top_selling_items, pos_lagging_items,
+# pos_sales_summary, inventory_reorder_candidates). These fixtures are the
+# acceptance spec for WP4 — write the tools to make these pass.
+
+- id: top_selling_dishes_week
+  scope: pos
+  question: "What were our top selling dishes this week?"
+  expect:
+    tools_called: [pos_top_selling_items]
+    grounded_numbers: true
+    no_write_language: true
+  fixture: demo_restaurant
+
+- id: lagging_menu_items
+  scope: pos
+  question: "Which menu items are not selling well lately?"
+  expect:
+    tools_called: [pos_lagging_items]
+    grounded_numbers: true
+  fixture: demo_restaurant
+
+- id: sales_summary_period_compare
+  scope: pos
+  question: "How did this week's sales compare to last week?"
+  expect:
+    tools_called: [pos_sales_summary]
+    grounded_numbers: true
+  fixture: demo_restaurant
+
+- id: reorder_candidates_restaurant
+  scope: pos
+  question: "What should we restock soon based on sales and current inventory?"
+  expect:
+    tools_called: [inventory_reorder_candidates]
+    grounded_numbers: true
+  fixture: demo_restaurant
+
+- id: retail_top_sellers
+  scope: pos
+  question: "Which products sold most this month?"
+  expect:
+    tools_called: [pos_top_selling_items]
+    grounded_numbers: true
+  fixture: demo_retail
+  note: "Same tool, retail vertical — proves the analytics pack is vertical-agnostic."
+
+- id: no_fabricated_ad_analytics
+  scope: pos
+  question: "Which of our adverts brought in the most customers?"
+  expect:
+    tools_called: []
+    grounded_numbers: true
+    must_not_mention: ["your Facebook ad", "your TikTok campaign"]
+  fixture: demo_restaurant
+  note: "No ad-tracking data model exists. The copilot must say it lacks this data, not invent campaign performance."

@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alphasoft.app/contracts/ai-tool.schema.json",
+  "title": "AI Tool Specification",
+  "description": "Contract every AlphaSoft AI tool must satisfy. Backend source of truth: Modules\\Ai\\Contracts\\AiToolContract. Tools are the ONLY way AI reaches tenant data.",
+  "type": "object",
+  "required": ["name", "module_scope", "description", "input_schema", "permission"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "snake_case tool name, unique across the registry (e.g. catalog_search, pos_top_selling_items)."
+    },
+    "module_scope": {
+      "type": "string",
+      "enum": ["catalog", "inventory", "pos", "patients", "activity-log", "accounting"],
+      "description": "ERP module this tool belongs to. Must appear in config('ai.enabled_modules') to be exposed."
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Model-facing description. Written for the LLM, not for humans."
+    },
+    "input_schema": {
+      "type": "object",
+      "description": "JSON Schema (object type) for tool input. Keep parameters few and typed; clamp limits server-side regardless.",
+      "required": ["type", "properties"],
+      "properties": {
+        "type": { "const": "object" },
+        "properties": { "type": "object" },
+        "required": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "output_schema": {
+      "type": "object",
+      "description": "JSON Schema for the tool's return array. PLANNED (not yet in AiToolContract). Rule regardless: minimal task-specific fields, aggregates over records, never customer PII."
+    },
+    "permission": {
+      "type": "object",
+      "required": ["module", "resource", "action"],
+      "properties": {
+        "module": { "type": "string" },
+        "resource": { "type": "string" },
+        "action": { "type": "string" }
+      },
+      "description": "Must match an entry in the module's config/permissions.php. Enforced by AiToolRegistry when config('ai.enforce_permissions') is true."
+    },
+    "action_level": {
+      "type": "string",
+      "enum": ["read_only", "recommendation", "draft", "execute_with_approval", "forbidden"],
+      "default": "read_only",
+      "description": "Governance level per ai-planning/03. Launch scope permits read_only, recommendation, draft only. draft-level tools MUST write via ai_suggestions, never directly."
+    },
+    "audit": {
+      "type": "object",
+      "properties": {
+        "logs_tool_call": { "type": "boolean", "const": true, "description": "Every dispatch writes an ai_tool_calls row. Non-negotiable." },
+        "emits_activity_event": { "type": "boolean", "description": "True for tools whose applied effects must appear in the tenant activity log." }
+      }
+    }
+  }
+}

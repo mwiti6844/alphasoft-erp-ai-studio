@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alphasoft.app/contracts/ai-run.schema.json",
+  "title": "AI Run (Session + Tool Calls)",
+  "description": "Audit shape of one AI session. Backend source of truth: ai_sessions and ai_tool_calls tenant migrations (2026_06_03_100000 / 100100).",
+  "type": "object",
+  "required": ["session", "tool_calls"],
+  "properties": {
+    "session": {
+      "type": "object",
+      "required": ["id", "user_id", "module_scope", "runtime_adapter", "model_id", "status", "started_at"],
+      "properties": {
+        "id": { "type": "integer" },
+        "user_id": { "type": "integer", "description": "Tenant user who owns the session. Sessions are user-owned; controller enforces ownership." },
+        "module_scope": { "type": "string", "maxLength": 64 },
+        "runtime_adapter": { "type": "string", "maxLength": 64, "description": "stub | laravel_http (python planned, currently aliases laravel_http — see GAPS #8)." },
+        "model_id": { "type": "string", "maxLength": 128 },
+        "status": { "type": "string", "enum": ["active", "closed"], "description": "Default active; closed via DELETE endpoint." },
+        "input_tokens": { "type": "integer", "minimum": 0, "description": "Cumulative, updated by AiSessionService::recordTurn." },
+        "output_tokens": { "type": "integer", "minimum": 0 },
+        "turn_count": { "type": "integer", "minimum": 0 },
+        "started_at": { "type": "string", "format": "date-time" },
+        "closed_at": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "tool_calls": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["ai_session_id", "user_id", "tool_name", "input_payload", "permission_snapshot", "called_at"],
+        "properties": {
+          "id": { "type": "integer" },
+          "ai_session_id": { "type": "integer" },
+          "user_id": { "type": "integer" },
+          "tool_name": { "type": "string", "maxLength": 128 },
+          "input_payload": { "type": "object" },
+          "output_payload": { "type": ["object", "null"], "description": "Null when the call errored." },
+          "permission_snapshot": { "type": "object", "description": "The permission triple + enforcement state captured at dispatch time." },
+          "duration_ms": { "type": ["integer", "null"], "minimum": 0 },
+          "error_message": { "type": ["string", "null"] },
+          "called_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}

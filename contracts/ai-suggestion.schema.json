@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alphasoft.app/contracts/ai-suggestion.schema.json",
+  "title": "AI Suggestion (Draft-for-Approval)",
+  "description": "The ONLY write path for AI-proposed changes. AI files a suggestion; a human reviews; only then is anything applied. Backend source of truth: ai_suggestions migration (2026_06_03_100200) + Modules\\Ai\\Models\\AiSuggestion. NOTE: the DB default status is 'pending' (planning docs say 'draft' — the code wins; update docs, not the enum).",
+  "type": "object",
+  "required": ["ai_session_id", "user_id", "suggestion_type", "module_scope", "payload", "status"],
+  "properties": {
+    "id": { "type": "integer" },
+    "ai_session_id": { "type": "integer" },
+    "user_id": { "type": "integer", "description": "User whose session produced the suggestion." },
+    "suggestion_type": {
+      "type": "string",
+      "maxLength": 128,
+      "description": "Machine-readable kind, e.g. insight_report, catalog_import_draft, reorder_plan_draft. Register new types here as they ship."
+    },
+    "module_scope": { "type": "string", "maxLength": 64 },
+    "payload": {
+      "type": "object",
+      "description": "Type-specific content. For insight_report: { period, figures: {...}, narrative }. Grounding rule: every number in narrative MUST exist in figures."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "approved", "rejected", "applied"],
+      "description": "pending (default) -> approved|rejected by reviewer; approved -> applied when executed. No other transitions."
+    },
+    "reviewed_by": { "type": ["integer", "null"], "description": "Reviewer user id; null until reviewed." },
+    "reviewed_at": { "type": ["string", "null"], "format": "date-time" },
+    "applied_at": { "type": ["string", "null"], "format": "date-time" },
+    "rejection_reason": { "type": ["string", "null"], "description": "Required when status is rejected." }
+  }
+}

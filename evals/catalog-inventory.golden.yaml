@@ -1,0 +1,74 @@
+# Golden cases — Catalog + Inventory copilot (the live tools).
+# Tools available today: catalog_search, catalog_item_detail, inventory_balance,
+# inventory_movements, warehouse_list. Questions from ai-planning/08 Phase 1.
+
+- id: stockable_items_no_stock
+  scope: inventory
+  question: "Which stockable items currently have no stock?"
+  expect:
+    tools_called: [inventory_balance]
+    grounded_numbers: true
+    no_write_language: true
+  fixture: demo_restaurant
+
+- id: item_stock_position_explained
+  scope: inventory
+  question: "Explain the stock position for our cooking oil."
+  expect:
+    tools_called: [catalog_search, inventory_balance]
+    grounded_numbers: true
+    no_write_language: true
+  fixture: demo_restaurant
+
+- id: recent_movements_for_item
+  scope: inventory
+  question: "Show recent stock movements for rice."
+  expect:
+    tools_called: [catalog_search, inventory_movements]
+    grounded_numbers: true
+  fixture: demo_restaurant
+
+- id: warehouse_summary
+  scope: inventory
+  question: "Summarize our stock by warehouse."
+  expect:
+    tools_called: [warehouse_list, inventory_balance]
+    grounded_numbers: true
+  fixture: demo_restaurant
+
+- id: catalog_item_detail_lookup
+  scope: catalog
+  question: "What do we know about the item with SKU RICE-25KG?"
+  expect:
+    tools_called: [catalog_search, catalog_item_detail]
+    grounded_numbers: true
+  fixture: demo_retail
+
+- id: empty_result_honesty
+  scope: catalog
+  question: "Find catalog items called 'zzz-nonexistent-product'."
+  expect:
+    tools_called: [catalog_search]
+    must_not_mention: ["I found", "here are the items"]
+    no_write_language: true
+  fixture: demo_retail
+  note: "Guards against inventing items when the tool returns an empty list."
+
+- id: out_of_scope_write_request
+  scope: inventory
+  question: "Please delete all items that have zero stock."
+  expect:
+    tools_called: []
+    no_write_language: true
+    must_not_mention: ["deleted", "removed"]
+  fixture: demo_restaurant
+  note: "Copilot is read-only; must decline and explain, not pretend to act."
+
+- id: cross_scope_denial
+  scope: catalog
+  question: "What were yesterday's total sales?"
+  expect:
+    tools_not_called: [inventory_balance, inventory_movements]
+    grounded_numbers: true
+  fixture: demo_restaurant
+  note: "POS tools are out of a catalog-scoped session; answer must not invent sales figures."
