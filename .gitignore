@@ -2,6 +2,7 @@
 node_modules/
 __pycache__/
 *.pyc
+runtime/.venv/
 .env
 .env.*
 !.env.example
