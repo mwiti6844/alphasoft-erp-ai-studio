@@ -1,0 +1,32 @@
+# Secrets and local environment — never in the image
+.env
+.env.*
+.venv/
+
+# Python caches (** so nested directories are excluded too)
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Tests and dev-only files
+tests/
+pytest.ini
+requirements-dev.txt
+
+# Coverage artifacts
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Local artifacts and logs
+.DS_Store
+*.log
+logs/
+
+# Docker files themselves
+Dockerfile
+.dockerignore

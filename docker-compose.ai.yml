@@ -1,0 +1,10 @@
+services:
+  ai-runtime:
+    build:
+      context: ./runtime
+    image: alphasoft-ai-runtime:local
+    env_file:
+      - path: ./runtime/.env
+        required: false
+    ports:
+      - "8100:8100"
