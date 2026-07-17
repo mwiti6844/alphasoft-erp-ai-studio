@@ -33,6 +33,8 @@ async def collect_events(provider, laravel, **overrides) -> list[object]:
         "tenant_id": "tenant-1",
         "user_id": 1,
         "session_id": 1,
+        "runtime_session_id": "runtime-session-1",
+        "domain": "shop.localhost",
         "message": "Show top selling items",
         "messages": [],
         "conversation_state": {},
@@ -77,6 +79,8 @@ class TestToolUseTurn:
 
         assert laravel.calls == [
             {
+                "runtime_session_id": "runtime-session-1",
+                "domain": "shop.localhost",
                 "tenant_id": "tenant-1",
                 "user_id": 1,
                 "session_id": 1,
@@ -276,6 +280,8 @@ class TestModuleScopeBehavior:
             tenant_id="tenant-1",
             user_id=1,
             session_id=1,
+            runtime_session_id="runtime-session-1",
+            domain="shop.localhost",
             message="hello",
             messages=[],
             conversation_state={},

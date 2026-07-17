@@ -1,0 +1,38 @@
+# Production on alphasoft VPS — ai.alphasoft.app
+# Nginx proxies to 127.0.0.1:8000; container listens on 8100 internally.
+#
+# On server:
+#   cd /var/www/ai
+#   cp runtime/.env.example runtime/.env   # first time only
+#   docker compose -f docker-compose.production.yml up -d --build
+
+services:
+  ai-runtime:
+    build:
+      context: .
+      dockerfile: runtime/Dockerfile
+    image: alphasoft-ai-runtime:production
+    container_name: alphasoft-ai-runtime
+    restart: unless-stopped
+    env_file:
+      - path: ./runtime/.env
+        required: true
+    ports:
+      - "127.0.0.1:8000:8100"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8100/api/health', timeout=4).status == 200 else 1)",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

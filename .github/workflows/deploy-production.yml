@@ -1,0 +1,74 @@
+# Deploy AI Studio runtime to ai.alphasoft.app (Docker on VPS).
+#
+# Required secrets: SSH_HOST, SSH_USER, SSH_PRIVATE_KEY, SSH_PATH (/var/www/ai)
+
+name: Deploy Production
+
+on:
+  push:
+    branches: [main, production, prod]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-ai-studio-production
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: runtime
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dev dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run tests
+        run: pytest -q
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Rsync to server
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PATH: ${{ secrets.SSH_PATH }}
+        run: |
+          rsync -avz --delete \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude 'runtime/.env' \
+            --exclude 'runtime/.venv' \
+            --exclude 'runtime/.pytest_cache' \
+            --exclude 'ai-planning' \
+            --exclude 'evals' \
+            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new" \
+            ./ "${SSH_USER}@${SSH_HOST}:${SSH_PATH}/"
+
+      - name: Run remote deploy script
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd "${{ secrets.SSH_PATH }}"
+            chmod +x deploy/deploy.sh
+            bash deploy/deploy.sh

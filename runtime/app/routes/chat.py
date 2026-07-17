@@ -17,6 +17,8 @@ class ChatRequest(BaseModel):
     tenant_id: str = Field(min_length=1, max_length=128)
     user_id: int = Field(gt=0)
     session_id: int = Field(gt=0)
+    runtime_session_id: str = Field(min_length=1, max_length=64)
+    domain: str = Field(min_length=1, max_length=255)
     module_scope: str = Field(min_length=1, max_length=64)
     message: str = Field(min_length=1, max_length=4000)
     messages: list[dict[str, str]] = Field(default_factory=list)
@@ -60,6 +62,8 @@ async def chat(body: ChatRequest, request: Request) -> StreamingResponse:
         tenant_id=body.tenant_id,
         user_id=body.user_id,
         session_id=body.session_id,
+        runtime_session_id=body.runtime_session_id,
+        domain=body.domain,
         message=body.message,
         messages=body.messages,
         conversation_state=body.conversation_state,
