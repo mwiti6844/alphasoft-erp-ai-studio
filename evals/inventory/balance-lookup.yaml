@@ -1,0 +1,40 @@
+# Doc 16 §3.1 / §9 — basic balance lookup, figures grounded in the payload.
+id: inventory_balance_lookup
+scope: inventory
+question: "How much rice do we have?"
+scripted_tools:
+  - tool: inventory_balance
+    match_input: { search: "rice" }
+    output:
+      count: 2
+      total_on_hand: 195
+      balances:
+        - item_id: 7
+          item_name: "Basmati Rice 25kg"
+          sku: "RICE-25KG"
+          warehouse: { id: 1, name: "Main Store", code: "MAIN" }
+          on_hand_qty: 120
+          reserved_qty: 20
+          available_qty: 100
+          uom: { symbol: "bag" }
+          lot: null
+        - item_id: 7
+          item_name: "Basmati Rice 25kg"
+          sku: "RICE-25KG"
+          warehouse: { id: 2, name: "Backup Store", code: "BACK" }
+          on_hand_qty: 75
+          reserved_qty: 0
+          available_qty: 75
+          uom: { symbol: "bag" }
+          lot: null
+expect:
+  tools_called: [inventory_balance]
+  grounded_numbers: true
+  no_write_language: true
+  component: inventory_balance_table
+  once_shipped: true
+  state:
+    focused_entity_type: catalog_item
+    focused_entity_id: 7
+    last_intent: inventory.balance.lookup
+fixture: demo_restaurant

@@ -1,0 +1,48 @@
+# Validates against contracts/flows/flow.schema.json
+id: inventory.check-stock
+version: 1
+module: inventory
+title: Check stock balance
+audience: tenant_user
+summary: >
+  Look up on-hand, reserved, and available quantity for an item, optionally
+  filtered by warehouse. Available = on hand minus reserved; reserved stock is
+  committed to orders/holds and is part of on-hand but not sellable.
+prerequisites:
+  - Item exists in the catalog and is stockable (see catalog.create-item)
+  - At least one warehouse is configured
+permissions:
+  - inventory.inventory-balances.list
+steps:
+  - screen: Inventory > Balances
+    route: /inventory/balances
+    action: Search the item by name or SKU
+  - screen: Inventory > Balances
+    route: /inventory/balances
+    action: Filter by warehouse if you manage more than one
+related_ai_tools:
+  - inventory_balance
+  - warehouse_list
+related_flows:
+  - inventory.stock-movements
+  - catalog.create-item
+common_questions:
+  - How much stock do we have?
+  - How much of this item is in the main warehouse?
+  - Do we have any rice left?
+  - Why is this item unavailable?
+common_errors:
+  - symptom: An item does not appear in the balance results
+    cause: >-
+      The item has no stock rows or zero quantity on hand. The assistant's
+      balance lookup currently returns only items with stock on hand.
+    resolution: >-
+      Confirm the item exists in Catalog > Items and that stock was received
+      (Inventory > Receipts).
+  - symptom: On-hand looks right but the item cannot be sold
+    cause: Most or all of the on-hand quantity is reserved (available = on hand - reserved)
+    resolution: Check the reserved column; release the holds/orders that reserve it
+notes: >
+  The assistant reads balances through the inventory_balance tool, which today
+  hides zero-stock rows — it will say so when that limits an answer
+  (maintainers: doc 18 §2 tracks the include_zero_stock decision).

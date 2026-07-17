@@ -1,0 +1,46 @@
+# Validates against contracts/flows/flow.schema.json
+id: catalog.create-item
+version: 1
+module: catalog
+related_modules:
+  - inventory
+  - pos
+title: Create a catalog item
+audience: tenant_user
+summary: >
+  Catalog items are the products/services everything else references — POS
+  sales, inventory balances, taxes. Stockable items are tracked in inventory;
+  non-stockable items (for example services) are not.
+prerequisites:
+  - Catalog module enabled for the tenant
+permissions:
+  - catalog.catalog-items.store
+steps:
+  - screen: Catalog > Items
+    route: /catalog/items
+    action: Open the item list
+  - screen: Catalog > Items > New
+    route: /catalog/items/new
+    action: >-
+      Fill in name, SKU, and pricing; mark the item stockable if inventory
+      should track it
+  - screen: Catalog > Items > New
+    route: /catalog/items/new
+    action: Assign taxes and unit of measure as needed, then save
+related_ai_tools:
+  - catalog_search
+  - catalog_item_detail
+related_flows:
+  - inventory.check-stock
+  - taxes.configure-tax
+common_questions:
+  - How do I create an item?
+  - How do I add a new product?
+  - What does the stockable field mean?
+common_errors:
+  - symptom: New item shows no stock in Inventory > Balances
+    cause: Creating an item does not create stock; balances appear after stock is received
+    resolution: Record a receipt in Inventory > Receipts for the initial quantity
+  - symptom: Tax missing when the item is sold at the register
+    cause: The item was saved without a tax assignment
+    resolution: Edit the item and assign the tax (see taxes.configure-tax)

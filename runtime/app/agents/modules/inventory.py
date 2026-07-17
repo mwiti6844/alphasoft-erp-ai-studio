@@ -44,9 +44,65 @@ def build_suggestions(
     conversation_state: dict[str, Any],
 ) -> list[Suggestion]:
     suggestions = list(_AFTER_TOOL.get(last_tool_name, _DEFAULT))
+    if last_tool_name == "inventory_balance":
+        item_id = _first_item_id(last_tool_output) or _focused_item_id(conversation_state)
+        if item_id is not None:
+            suggestions = [
+                {
+                    **_MOVEMENTS,
+                    "action": {
+                        "type": "run_tool",
+                        "tool": "inventory_movements",
+                        "input": {"item_id": item_id},
+                    },
+                },
+                _REORDER,
+            ]
+    elif last_tool_name == "inventory_movements":
+        item_id = _first_item_id(last_tool_output) or _focused_item_id(conversation_state)
+        if item_id is not None:
+            item_name = _first_item_name(last_tool_output)
+            suggestions = [
+                {
+                    **_BALANCES,
+                    "action": {
+                        "type": "run_tool",
+                        "tool": "inventory_balance",
+                        "input": {"search": item_name or str(item_id)},
+                    },
+                },
+                _REORDER,
+            ]
     if last_tool_name and last_tool_output.get("count") == 0:
         suggestions = [_WIDEN, *suggestions]
     return capped(suggestions)
+
+
+def _first_item_id(output: dict[str, Any]) -> int | None:
+    for key in ("balances", "movements", "items"):
+        rows = output.get(key)
+        if isinstance(rows, list):
+            for row in rows:
+                if isinstance(row, dict) and isinstance(row.get("item_id"), int):
+                    return row["item_id"]
+    return None
+
+
+def _first_item_name(output: dict[str, Any]) -> str | None:
+    for key in ("balances", "movements", "items"):
+        rows = output.get(key)
+        if isinstance(rows, list):
+            for row in rows:
+                if isinstance(row, dict) and isinstance(row.get("item_name"), str) and row["item_name"]:
+                    return row["item_name"]
+    return None
+
+
+def _focused_item_id(conversation_state: dict[str, Any]) -> int | None:
+    value = conversation_state.get("focused_entity_id")
+    if conversation_state.get("focused_entity_type") == "catalog_item" and isinstance(value, int):
+        return value
+    return None
 
 
 def build_state_patch(
@@ -61,7 +117,11 @@ INVENTORY_ROUTER = ModuleRouter(
     allowed_component_types=frozenset(
         {
             ComponentType.REORDER_CANDIDATES_TABLE,
+            ComponentType.INVENTORY_BALANCE_TABLE,
+            ComponentType.INVENTORY_MOVEMENTS_TABLE,
+            ComponentType.EMPTY_STATE,
             ComponentType.FOLLOW_UP_SUGGESTIONS,
+            ComponentType.FLOW_CITATIONS,
         }
     ),
     build_suggestions=build_suggestions,

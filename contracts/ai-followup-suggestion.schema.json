@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alphasoft.app/contracts/ai-followup-suggestion.schema.json",
+  "title": "AI Follow-Up Suggestion (chip)",
+  "description": "One deterministic follow-up chip inside the follow_up_suggestions component. Runtime source of truth: FollowUpSuggestion in runtime/app/agents/components.py — {id,label,message} is what ships today; `action` is the approved additive extension (ai-planning/19 §10, Phase B). Chips are built by module-router suggestion builders from validated tool output + conversation state — never by the LLM. `message` is the universal fallback: a frontend that ignores or fails `action` sends `message` as a plain user message. NOT to be confused with ai-suggestion.schema.json (the draft-for-approval write path).",
+  "type": "object",
+  "required": ["id", "label", "message"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "^[a-z0-9][a-z0-9-]*$",
+      "description": "Unique within the component instance."
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "Chip text. On an action click it is also echoed as the visible user message."
+    },
+    "message": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 300,
+      "description": "Plain-text fallback sent as a user message when `action` is absent or fails Laravel validation. Must be answerable by tools registered in the session's scope."
+    },
+    "action": {
+      "$ref": "#/$defs/action",
+      "description": "Optional structured action. Executes ONLY via POST /api/v1/tenant/ai/sessions/{id}/chat with {message: label, action} — Laravel re-validates before forwarding to the runtime as ui_action (type allow-listed; tool registered, in the session's module scope, and permitted for the user; every entity id in input ⊆ the session context_json's displayed_*/focused_entity_id). Invalid/stale actions get a 422 and the frontend falls back to `message`. Direct frontend→Python calls are impossible by design. Builders must never emit destructive actions — the action catalog is read-only by construction."
+    }
+  },
+  "$defs": {
+    "action": {
+      "oneOf": [
+        { "$ref": "#/$defs/run_tool_action" },
+        { "$ref": "#/$defs/ask_action" },
+        { "$ref": "#/$defs/start_journey_action" }
+      ]
+    },
+    "run_tool_action": {
+      "type": "object",
+      "required": ["type", "tool", "input"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "run_tool" },
+        "tool": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "A tool registered in AiToolRegistry and matching the session's module scope. Suggestion builders may only reference tools present in the request's tool_definitions (i.e. Laravel granted them)."
+        },
+        "input": {
+          "type": "object",
+          "description": "Must validate against the tool's declared input_schema. Entity ids may reference only currently displayed/focused ids from conversation state — never guessed or historical ids."
+        }
+      }
+    },
+    "ask_action": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "ask" }
+      },
+      "description": "Explicit form of the fallback: send `message` as a plain user message."
+    },
+    "start_journey_action": {
+      "type": "object",
+      "required": ["type", "journey"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "start_journey" },
+        "journey": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "A journey name owned by a module router (currently pos_analytics, inventory, catalog — see runtime/app/agents/modules/). Used for empty-state journey starters."
+        }
+      }
+    },
+    "follow_up_suggestions_props": {
+      "type": "object",
+      "required": ["suggestions"],
+      "additionalProperties": false,
+      "properties": {
+        "suggestions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": { "$ref": "#" }
+        }
+      },
+      "description": "Props of the follow_up_suggestions component: 1–4 chips, matching FollowUpSuggestionsProps in the runtime."
+    }
+  }
+}

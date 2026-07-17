@@ -36,6 +36,8 @@ async def collect_events(provider, laravel, **overrides) -> list[object]:
         "message": "Show top selling items",
         "messages": [],
         "conversation_state": {},
+        "ui_action": None,
+        "user_memory": {},
         "module_scope": "pos",
         "tool_definitions": [
             {"name": "pos_top_selling_items", "description": "Top sellers", "input_schema": {"type": "object", "properties": {}}}
@@ -201,6 +203,57 @@ class TestModuleScopeBehavior:
         assert "Lagging items" not in labels
         assert "Stock balances" in labels
 
+    async def test_process_question_injects_flow_context_and_emits_citations(self):
+        provider = ScriptedProvider([scripted_response([TextPart("Open Inventory > Balances.")], StopReason.END_TURN)])
+        events = await collect_events(
+            provider,
+            FakeLaravelToolClient(),
+            module_scope="inventory",
+            message="How do I check stock?",
+        )
+
+        assert "Product-flow knowledge matched this question" in provider.requests[0].system
+        assert "inventory.check-stock" in provider.requests[0].system
+        assert "Inventory > Balances" in provider.requests[0].system
+        flow_trace = next(e for e in events if isinstance(e, Trace) and e.label == "flow_matches")
+        assert flow_trace.detail["sources"][0]["id"] == "inventory.check-stock"
+        citations = next(
+            e for e in events if isinstance(e, ComponentReady) and e.type == "flow_citations"
+        )
+        assert citations.props["sources"][0]["id"] == "inventory.check-stock"
+
+    async def test_unmatched_process_question_gets_no_citation_component(self):
+        provider = ScriptedProvider([scripted_response([TextPart("That flow is not documented yet.")], StopReason.END_TURN)])
+        events = await collect_events(
+            provider,
+            FakeLaravelToolClient(),
+            module_scope="inventory",
+            message="How do I calibrate the moon printer?",
+        )
+
+        assert "no curated flow resource matched" in provider.requests[0].system
+        assert not any(isinstance(e, ComponentReady) and e.type == "flow_citations" for e in events)
+
+    async def test_user_memory_is_injected_as_read_only_preferences(self):
+        provider = ScriptedProvider([scripted_response([TextPart("Hi.")], StopReason.END_TURN)])
+        events = await collect_events(
+            provider,
+            FakeLaravelToolClient(),
+            module_scope="inventory",
+            user_memory={
+                "answer_verbosity": "short",
+                "default_reporting_period": "last_30_days",
+                "ignored_nested": {"unsafe": "value"},
+            },
+        )
+
+        assert "User preferences from explicit memory" in provider.requests[0].system
+        assert "Answer verbosity: short" in provider.requests[0].system
+        assert "Default reporting period: last_30_days" in provider.requests[0].system
+        assert "ignored_nested" not in provider.requests[0].system
+        trace = next(e for e in events if isinstance(e, Trace) and e.label == "user_memory")
+        assert trace.detail == {"keys": ["answer_verbosity", "default_reporting_period", "ignored_nested"]}
+
     async def test_catalog_scope_has_no_pos_only_suggestions(self):
         provider = ScriptedProvider([scripted_response([TextPart("Hi.")], StopReason.END_TURN)])
         events = await collect_events(provider, FakeLaravelToolClient(), module_scope="catalog")
@@ -226,6 +279,8 @@ class TestModuleScopeBehavior:
             message="hello",
             messages=[],
             conversation_state={},
+            ui_action=None,
+            user_memory={},
             module_scope="billing",
             tool_definitions=[],
             max_tokens=512,

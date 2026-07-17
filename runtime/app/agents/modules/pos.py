@@ -69,6 +69,7 @@ POS_ROUTER = ModuleRouter(
             ComponentType.SALES_SUMMARY_CARD,
             ComponentType.REORDER_CANDIDATES_TABLE,
             ComponentType.FOLLOW_UP_SUGGESTIONS,
+            ComponentType.FLOW_CITATIONS,
         }
     ),
     build_suggestions=build_suggestions,

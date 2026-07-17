@@ -43,6 +43,15 @@ class TestRouterInvariants:
         assert ComponentType.FOLLOW_UP_SUGGESTIONS in router.allowed_component_types
 
     @pytest.mark.parametrize("router", ALL_ROUTERS, ids=lambda r: r.scope)
+    def test_every_router_allows_flow_citations(self, router):
+        assert ComponentType.FLOW_CITATIONS in router.allowed_component_types
+
+    def test_inventory_router_allows_phase_c_inventory_components(self):
+        assert ComponentType.INVENTORY_BALANCE_TABLE in INVENTORY_ROUTER.allowed_component_types
+        assert ComponentType.INVENTORY_MOVEMENTS_TABLE in INVENTORY_ROUTER.allowed_component_types
+        assert ComponentType.EMPTY_STATE in INVENTORY_ROUTER.allowed_component_types
+
+    @pytest.mark.parametrize("router", ALL_ROUTERS, ids=lambda r: r.scope)
     def test_default_suggestions_are_valid_and_capped(self, router):
         chips = router.build_suggestions("", {}, {}, {})
         assert 1 <= len(chips) <= MAX_SUGGESTIONS
@@ -96,6 +105,34 @@ class TestInventorySuggestions:
         labels = {chip["label"] for chip in chips}
         assert labels.isdisjoint(POS_ONLY_LABELS)
         assert "Recent movements" in labels
+
+    def test_after_balance_tool_can_emit_structured_movement_action(self):
+        chips = INVENTORY_ROUTER.build_suggestions(
+            "inventory_balance",
+            {},
+            {"count": 1, "balances": [{"item_id": 7, "item_name": "Basmati Rice"}]},
+            {},
+        )
+        assert chips[0]["action"] == {
+            "type": "run_tool",
+            "tool": "inventory_movements",
+            "input": {"item_id": 7},
+        }
+        component = validated_component("follow_up_suggestions", {"suggestions": chips})
+        assert component is not None
+
+    def test_after_movements_tool_uses_real_item_name_for_balance_action(self):
+        chips = INVENTORY_ROUTER.build_suggestions(
+            "inventory_movements",
+            {},
+            {"count": 1, "movements": [{"item_id": 7, "item_name": "Basmati Rice 25kg"}]},
+            {},
+        )
+        assert chips[0]["action"] == {
+            "type": "run_tool",
+            "tool": "inventory_balance",
+            "input": {"search": "Basmati Rice 25kg"},
+        }
 
     def test_prompt_explains_reorder_basis(self):
         assert "stock cover and sales velocity" in INVENTORY_ROUTER.system_prompt

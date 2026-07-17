@@ -1,0 +1,35 @@
+# Secrets and local environment — never in the image
+.env
+.env.*
+runtime/.env
+runtime/.env.*
+runtime/.venv/
+
+# Git and local metadata
+.git/
+.DS_Store
+
+# Python caches
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+runtime/.pytest_cache/
+runtime/.mypy_cache/
+runtime/.ruff_cache/
+
+# Tests and dev-only files
+runtime/tests/
+runtime/pytest.ini
+runtime/requirements-dev.txt
+evals/
+ai-planning/
+
+# Coverage artifacts
+runtime/.coverage
+runtime/.coverage.*
+runtime/coverage.xml
+runtime/htmlcov/
+
+# Logs
+*.log
+logs/

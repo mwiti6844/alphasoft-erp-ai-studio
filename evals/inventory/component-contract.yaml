@@ -1,0 +1,84 @@
+# Doc 16 §9 — shared props payloads per inventory component. Each payload must
+# validate against BOTH the runtime pydantic model and the frontend TS type.
+# For components marked status: proposed, this fixture IS the props spec —
+# pydantic model + TS type are built against it in Phase C (doc 16 §7).
+id: inventory_component_contract
+scope: inventory
+components:
+  - type: inventory_reorder_candidates_table
+    status: exists            # ReorderCandidatesProps, runtime/app/agents/components.py
+    props:
+      velocity_window_days: 14
+      cover_days_threshold: 7
+      items:
+        - item_id: 7
+          item_name: "Basmati Rice 25kg"
+          sku: "RICE-25KG"
+          avg_daily_sales: 4.5
+          available_qty: 18
+          days_of_cover: 4.0
+          out_of_stock: false
+  - type: inventory_balance_table
+    status: exists            # shipped in Phase C
+    props:
+      total_on_hand: 195
+      rows:
+        - item_id: 7
+          item_name: "Basmati Rice 25kg"
+          sku: "RICE-25KG"
+          warehouse_name: "Main Store"
+          on_hand_qty: 120
+          reserved_qty: 20
+          available_qty: 100
+          uom_symbol: "bag"
+  - type: inventory_movements_table
+    status: exists            # shipped in Phase C
+    props:
+      item_name: "Basmati Rice 25kg"
+      limit: 20
+      truncated: false
+      timestamp_basis: created_at
+      rows:
+        - id: 341
+          item_id: 7
+          item_name: "Basmati Rice 25kg"
+          sku: "RICE-25KG"
+          occurred_at: "2026-07-15T18:22:00Z"
+          direction: "out"
+          movement_type: "sale"
+          qty: 2
+          warehouse_id: 1
+          warehouse_name: "Main Store"
+          warehouse_code: "MAIN"
+          lot_number: null
+          source_document_type: "pos_transaction"
+  - type: inventory_stock_position_card
+    status: proposed
+    props:
+      item_id: 7
+      item_name: "Basmati Rice 25kg"
+      sku: "RICE-25KG"
+      on_hand_qty: 120
+      reserved_qty: 20
+      available_qty: 100
+      avg_daily_sales: 4.5
+      days_of_cover: 22.2
+      velocity_window_days: 14
+      out_of_stock: false
+      status_note: null
+  - type: ai_empty_state
+    status: exists            # shipped in Phase C
+    props:
+      title: "No stock rows found"
+      reason: "No items matched 'zzz-nonexistent-product'. The lookup only shows items with stock on hand."
+      suggestions:
+        - id: "widen-search"
+          label: "Search the catalog instead"
+          message: "Search the catalog for zzz-nonexistent-product"
+expect:
+  props_validate: true        # runner asserts pydantic model + TS type both accept each payload
+note: >
+  Rules from doc 16 §7 apply: pydantic models are extra="forbid"; unknown
+  component types render nothing; components render only from live tool
+  payloads in product behavior.
+fixture: demo_restaurant

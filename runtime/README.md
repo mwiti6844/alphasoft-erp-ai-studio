@@ -74,7 +74,7 @@ image).
 ### Build
 
 ```bash
-docker build -t alphasoft-ai-runtime ./runtime
+docker build -f runtime/Dockerfile -t alphasoft-ai-runtime .
 ```
 
 ### Compose

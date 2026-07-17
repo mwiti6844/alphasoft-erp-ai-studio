@@ -21,6 +21,8 @@ class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=4000)
     messages: list[dict[str, str]] = Field(default_factory=list)
     conversation_state: dict[str, Any] = Field(default_factory=dict)
+    ui_action: dict[str, Any] | None = None
+    user_memory: dict[str, Any] = Field(default_factory=dict)
     tool_definitions: list[dict[str, Any]] = Field(default_factory=list)
     max_tokens: int = Field(default=1024, ge=128, le=4096)
     temperature: float = Field(default=0.2, ge=0, le=1)
@@ -61,6 +63,8 @@ async def chat(body: ChatRequest, request: Request) -> StreamingResponse:
         message=body.message,
         messages=body.messages,
         conversation_state=body.conversation_state,
+        ui_action=body.ui_action,
+        user_memory=body.user_memory,
         module_scope=body.module_scope,
         tool_definitions=body.tool_definitions,
         max_tokens=body.max_tokens,

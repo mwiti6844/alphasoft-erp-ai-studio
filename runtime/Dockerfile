@@ -12,12 +12,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 # Install production dependencies only (requirements-dev.txt is tests-only).
-COPY requirements.txt ./
+COPY runtime/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy only the application package. .env, .venv, tests, and caches are
 # excluded via .dockerignore and are never copied.
-COPY app ./app
+COPY runtime/app ./app
+COPY contracts/flows ./contracts/flows
 
 # Run as a non-root user.
 RUN useradd --create-home --uid 10001 runtime \
