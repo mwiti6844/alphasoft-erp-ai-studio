@@ -1,0 +1,50 @@
+# Validates against contracts/flows/flow.schema.json
+id: pos.setup
+version: 1
+module: pos
+related_modules:
+  - retail
+  - restaurant
+title: Set up POS
+audience: tenant_admin
+summary: >
+  POS setup creates a store profile with a vertical (retail, restaurant, or
+  pharmacy), registers terminals, and pairs devices. Selling happens at the
+  register once a shift is open. The vertical changes register behavior and
+  tags transactions, which is also how AI analytics can separate restaurant
+  from retail.
+prerequisites:
+  - POS module enabled for the tenant
+  - Catalog items exist to sell (see catalog.create-item)
+permissions:
+  - pos.settings.store
+  - pos.terminals.store
+steps:
+  - screen: POS > Setup
+    route: /pos/setup
+    action: Follow the guided setup
+  - screen: POS > Settings > Store profiles
+    route: /pos/settings/store-profiles
+    action: >-
+      Create the store profile and choose its vertical (retail, restaurant, or
+      pharmacy)
+  - screen: POS > Settings > Terminals
+    route: /pos/settings/terminals
+    action: Add a terminal for each till/device
+  - screen: POS > Register
+    route: /pos/register
+    action: Open a shift and start selling
+related_ai_tools:
+  - pos_sales_summary
+related_flows:
+  - pos.restaurant-register
+  - catalog.create-item
+  - taxes.configure-tax
+common_questions:
+  - How do I set up POS?
+  - How do I add a terminal?
+  - How do I start selling?
+common_errors:
+  - symptom: Register won't start a sale
+    cause: No open shift on the terminal
+    resolution: Open a shift at the register first

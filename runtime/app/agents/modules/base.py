@@ -13,8 +13,8 @@ from typing import Any
 
 from app.agents.components import ComponentType
 
-# {id, label, message} — matches FollowUpSuggestionsProps entries.
-Suggestion = dict[str, str]
+# {id, label, message, action?} — matches FollowUpSuggestionsProps entries.
+Suggestion = dict[str, Any]
 
 # (last_tool_name, last_tool_input, last_tool_output, conversation_state).
 # last_tool_name is "" when the turn used no tools — builders must return

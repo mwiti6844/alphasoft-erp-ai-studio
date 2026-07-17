@@ -1,0 +1,49 @@
+# Validates against contracts/flows/flow.schema.json
+id: permissions.module-access
+version: 1
+module: permissions
+related_modules:
+  - tenants
+title: Understand module access
+audience: tenant_admin
+summary: >
+  What a user can see and do is controlled by roles and permission bundles.
+  Each module declares resources and actions (for example
+  inventory.inventory-balances.list); roles grant them. A module a user has no
+  permissions for is hidden or shows the access-denied page. AI tools are
+  gated by the same permission triples as the screens.
+steps:
+  - screen: Users > Roles
+    route: /users/roles
+    action: Open the role assigned to the affected user
+  - screen: Users > Roles
+    route: /users/roles
+    action: >-
+      Check which module resources/actions the role grants and add the missing
+      permission
+  - screen: Settings > Users
+    route: /settings/users
+    action: Confirm the user has the intended role assigned
+related_flows:
+  - inventory.check-stock
+  - pos.setup
+common_questions:
+  - Why can't I see a module?
+  - Why do I get access denied?
+  - Why can't the AI assistant answer inventory questions for me?
+common_errors:
+  - symptom: User lands on the access-denied page for a module they need
+    cause: Their role lacks that module's permissions
+    resolution: >-
+      A tenant admin adds the permission to their role or assigns a different
+      role
+  - symptom: The AI assistant says a lookup isn't available to this user
+    cause: >-
+      AI tools are permission-gated with the same module.resource.action
+      triples as the screens; the user lacks the underlying permission
+    resolution: Grant the module permission — AI access follows it automatically
+notes: >
+  Module availability also depends on the tenant's enabled modules, managed
+  centrally. If nobody in the tenant can see a module, it is likely not
+  enabled for the tenant at all — a subscription/tenant setting, not a role
+  issue.

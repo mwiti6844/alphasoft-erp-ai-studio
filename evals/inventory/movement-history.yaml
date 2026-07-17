@@ -1,0 +1,44 @@
+# Doc 16 §3.3 / §9 — "what happened to it" resolves item_id from focused state;
+# the fixed last-20 cap is disclosed.
+id: inventory_movement_history
+scope: inventory
+turns:
+  - user: "How much rice do we have?"
+    expect:
+      tools_called: [inventory_balance]
+      grounded_numbers: true
+  - user: "What happened to it recently?"
+    expect:
+      tools_called: [inventory_movements]
+      grounded_numbers: true
+      discloses: [movement_list_cap]
+      component: inventory_movements_table
+      once_shipped: true
+      state:
+        last_intent: inventory.movements.recent
+scripted_tools:
+  - tool: inventory_balance
+    match_input: { search: "rice" }
+    output:
+      count: 1
+      total_on_hand: 120
+      balances:
+        - item_id: 7
+          item_name: "Basmati Rice 25kg"
+          sku: "RICE-25KG"
+          warehouse: { id: 1, name: "Main Store", code: "MAIN" }
+          on_hand_qty: 120
+          reserved_qty: 20
+          available_qty: 100
+          uom: { symbol: "bag" }
+          lot: null
+  - tool: inventory_movements
+    match_input: { item_id: 7 }
+    output:
+      count: 20
+      movements:
+        - { id: 341, direction: "out", movement_type: "sale", qty: 2, warehouse: { id: 1, name: "Main Store" }, lot: null, occurred_at: "2026-07-15T18:22:00Z" }
+        - { id: 338, direction: "out", movement_type: "sale", qty: 1, warehouse: { id: 1, name: "Main Store" }, lot: null, occurred_at: "2026-07-15T12:05:00Z" }
+        - { id: 320, direction: "in", movement_type: "receipt", qty: 50, warehouse: { id: 1, name: "Main Store" }, lot: null, occurred_at: "2026-07-14T09:00:00Z" }
+        # …runner treats count: 20 as the cap signal; remaining rows elided for fixture brevity
+fixture: demo_restaurant

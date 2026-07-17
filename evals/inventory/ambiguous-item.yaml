@@ -1,0 +1,50 @@
+# Doc 16 §3.1 / §9 — multi-match search → exactly one clarification presenting
+# the REAL candidates from the payload; no arbitrary pick.
+id: inventory_ambiguous_item
+scope: inventory
+question: "How much stock of oil do we have?"
+scripted_tools:
+  - tool: inventory_balance
+    match_input: { search: "oil" }
+    output:
+      count: 3
+      total_on_hand: 74
+      balances:
+        - item_id: 12
+          item_name: "Cooking Oil 5L"
+          sku: "OIL-5L"
+          warehouse: { id: 1, name: "Main Store", code: "MAIN" }
+          on_hand_qty: 40
+          reserved_qty: 0
+          available_qty: 40
+          uom: { symbol: "btl" }
+          lot: null
+        - item_id: 19
+          item_name: "Olive Oil 1L"
+          sku: "OIL-OLIVE-1L"
+          warehouse: { id: 1, name: "Main Store", code: "MAIN" }
+          on_hand_qty: 22
+          reserved_qty: 2
+          available_qty: 20
+          uom: { symbol: "btl" }
+          lot: null
+        - item_id: 31
+          item_name: "Chili Oil 250ml"
+          sku: "OIL-CHILI-250"
+          warehouse: { id: 1, name: "Main Store", code: "MAIN" }
+          on_hand_qty: 12
+          reserved_qty: 0
+          available_qty: 12
+          uom: { symbol: "btl" }
+          lot: null
+expect:
+  tools_called: [inventory_balance]
+  clarification: true
+  grounded_numbers: true
+  must_mention: ["Cooking Oil", "Olive Oil", "Chili Oil"]
+note: >
+  One clarification max (doc 16 §6.3). The candidates offered must be exactly
+  the returned items — optionally as disambiguation chips reusing
+  follow_up_suggestions (doc 16 §7). No focused_entity_id may be set until the
+  user picks.
+fixture: demo_restaurant

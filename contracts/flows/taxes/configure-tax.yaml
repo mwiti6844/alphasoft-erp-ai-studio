@@ -1,0 +1,41 @@
+# Validates against contracts/flows/flow.schema.json
+id: taxes.configure-tax
+version: 1
+module: taxes
+related_modules:
+  - catalog
+  - pos
+title: Configure taxes
+audience: tenant_admin
+summary: >
+  Taxes are defined in catalog settings and assigned to items. The register
+  applies an item's assigned taxes at sale time; tax totals are stored on
+  transactions, which is what makes tax-aware revenue reporting possible.
+prerequisites:
+  - Catalog module enabled for the tenant
+permissions:
+  - catalog.taxes.store
+  - catalog.taxes.update
+steps:
+  - screen: Catalog > Settings > Taxes
+    route: /catalog/settings/taxes
+    action: Create or edit a tax (name, rate)
+  - screen: Catalog > Items
+    route: /catalog/items
+    action: Edit each item the tax applies to and assign the tax
+related_ai_tools:
+  - catalog_item_detail
+related_flows:
+  - catalog.create-item
+  - pos.setup
+common_questions:
+  - How do I configure taxes?
+  - Why is tax not applied at the register?
+  - What does this tax field mean?
+common_errors:
+  - symptom: Tax missing on a POS sale
+    cause: The item has no tax assigned — creating a tax does not apply it anywhere by itself
+    resolution: Edit the item and assign the tax; new sales will include it
+  - symptom: Changing a tax rate didn't change past transactions
+    cause: Tax totals are captured on each transaction at sale time
+    resolution: This is by design; only new sales use the updated rate

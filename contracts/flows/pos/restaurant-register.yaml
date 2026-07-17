@@ -1,0 +1,44 @@
+# Validates against contracts/flows/flow.schema.json
+id: pos.restaurant-register
+version: 1
+module: pos
+related_modules:
+  - restaurant
+title: Use the restaurant register
+audience: tenant_user
+summary: >
+  Restaurant features at the register (dining layout, restaurant-specific
+  settings) come from the store profile's vertical — restaurant is a POS
+  vertical, not a separate module. The same register serves retail and
+  pharmacy when the profile says so.
+prerequisites:
+  - POS is set up (see pos.setup) with a store profile whose vertical is restaurant
+permissions:
+  - pos.settings.update
+steps:
+  - screen: POS > Settings > Store profiles
+    route: /pos/settings/store-profiles
+    action: Confirm the store profile vertical is set to restaurant
+  - screen: POS > Settings > Restaurant
+    route: /pos/settings/restaurant
+    action: Configure restaurant-specific settings such as the dining layout
+  - screen: POS > Register
+    route: /pos/register
+    action: Open a shift and take orders with restaurant features active
+related_ai_tools:
+  - pos_sales_summary
+  - pos_top_selling_items
+related_flows:
+  - pos.setup
+common_questions:
+  - How do I use the restaurant register?
+  - Why don't I see tables at the register?
+  - How do I set up the dining layout?
+common_errors:
+  - symptom: Restaurant features missing at the register
+    cause: The store profile vertical is not set to restaurant
+    resolution: Change the vertical on the store profile, then reload the register
+notes: >
+  The permissions listed cover configuration; day-to-day selling at the
+  register additionally requires the POS shift/session permissions granted to
+  cashier roles.

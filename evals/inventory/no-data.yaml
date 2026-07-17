@@ -1,0 +1,25 @@
+# Doc 16 §9 — zero matches → honest empty statement + scope-check chip;
+# no invented rows, no silent empty panel.
+id: inventory_no_data
+scope: inventory
+question: "How much stock of zzz-nonexistent-product do we have?"
+scripted_tools:
+  - tool: inventory_balance
+    match_input: { search: "zzz-nonexistent-product" }
+    output:
+      count: 0
+      total_on_hand: 0
+      balances: []
+expect:
+  tools_called: [inventory_balance]
+  no_write_language: true
+  must_not_mention: ["I found", "here are the items"]
+  discloses: [zero_stock_blind_spot]
+  component: ai_empty_state
+  once_shipped: true
+  state:
+    last_tool_output_summary: { count: 0 }
+note: >
+  The follow_up_suggestions component must include a widen/scope-check chip
+  (the router already prepends _WIDEN on count == 0).
+fixture: demo_restaurant

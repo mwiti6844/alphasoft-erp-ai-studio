@@ -1,0 +1,47 @@
+# Validates against contracts/flows/flow.schema.json
+id: inventory.reorder-candidates
+version: 1
+module: inventory
+related_modules:
+  - pos
+title: Find items to reorder
+audience: tenant_user
+summary: >
+  Reorder candidates are computed from stock cover — available quantity divided
+  by average daily sales over a recent window. There are no configured reorder
+  points in this system: the basis is always cover plus sales velocity, and the
+  assistant states the window and threshold it used.
+prerequisites:
+  - Items are stockable with recorded balances (see inventory.check-stock)
+  - Recent completed POS sales exist — velocity is computed from them
+permissions:
+  - inventory.inventory-balances.list
+steps:
+  - screen: AI Copilot
+    action: >-
+      Ask "what should we reorder?" — the assistant computes stock cover and
+      lists items below the cover threshold
+  - screen: Inventory > Balances
+    route: /inventory/balances
+    action: Cross-check current quantities for the listed items before ordering
+related_ai_tools:
+  - inventory_reorder_candidates
+  - inventory_balance
+related_flows:
+  - inventory.check-stock
+  - inventory.stock-movements
+common_questions:
+  - What should we reorder?
+  - What is about to run out?
+  - Which items are running low?
+common_errors:
+  - symptom: An item you expected to see is not in the reorder list
+    cause: >-
+      The item had no completed sales in the velocity window, so cover cannot
+      be computed from sales velocity
+    resolution: >-
+      The assistant states this explicitly when it applies; check the item's
+      balance directly instead
+notes: >
+  Defaults are a 14-day sales window and a 7-day cover threshold. Zero-velocity
+  items are reported honestly — never with an invented cover number.

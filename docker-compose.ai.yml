@@ -1,7 +1,8 @@
 services:
   ai-runtime:
     build:
-      context: ./runtime
+      context: .
+      dockerfile: runtime/Dockerfile
     image: alphasoft-ai-runtime:local
     env_file:
       - path: ./runtime/.env

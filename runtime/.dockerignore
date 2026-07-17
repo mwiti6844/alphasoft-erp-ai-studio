@@ -28,5 +28,5 @@ htmlcov/
 logs/
 
 # Docker files themselves
-Dockerfile
-.dockerignore
+runtime/Dockerfile
+runtime/.dockerignore

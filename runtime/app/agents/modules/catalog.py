@@ -73,7 +73,7 @@ def build_state_patch(
 CATALOG_ROUTER = ModuleRouter(
     scope="catalog",
     system_prompt=SYSTEM_PROMPT,
-    allowed_component_types=frozenset({ComponentType.FOLLOW_UP_SUGGESTIONS}),
+    allowed_component_types=frozenset({ComponentType.FOLLOW_UP_SUGGESTIONS, ComponentType.FLOW_CITATIONS}),
     build_suggestions=build_suggestions,
     state_patch_for_tool=build_state_patch,
 )

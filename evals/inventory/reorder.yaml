@@ -1,0 +1,36 @@
+# Doc 16 §3.5 / §9 — reorder ask states its basis: stock cover + sales velocity,
+# never "reorder points" (none exist in the schema).
+id: inventory_reorder
+scope: inventory
+question: "What should we reorder?"
+scripted_tools:
+  - tool: inventory_reorder_candidates
+    output:
+      velocity_window_days: 14
+      cover_days_threshold: 7
+      count: 2
+      items:
+        - item_id: 7
+          item_name: "Basmati Rice 25kg"
+          sku: "RICE-25KG"
+          avg_daily_sales: 4.5
+          available_qty: 18
+          days_of_cover: 4.0
+          out_of_stock: false
+        - item_id: 12
+          item_name: "Cooking Oil 5L"
+          sku: "OIL-5L"
+          avg_daily_sales: 2.0
+          available_qty: 0
+          days_of_cover: 0.0
+          out_of_stock: true
+expect:
+  tools_called: [inventory_reorder_candidates]
+  grounded_numbers: true
+  no_write_language: true
+  discloses: [cover_basis]
+  must_not_mention: ["reorder point"]
+  component: inventory_reorder_candidates_table
+  state:
+    last_intent: inventory.reorder.candidates
+fixture: demo_restaurant

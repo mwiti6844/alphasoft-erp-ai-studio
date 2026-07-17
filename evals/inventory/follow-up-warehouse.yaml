@@ -1,0 +1,63 @@
+# Doc 16 §3.2 / §9 — follow-up resolves warehouse from state + warehouse_list,
+# never re-asks for the item that is already focused.
+id: inventory_follow_up_warehouse
+scope: inventory
+turns:
+  - user: "How much rice do we have?"
+    expect:
+      tools_called: [inventory_balance]
+      grounded_numbers: true
+  - user: "What about Main Store?"
+    expect:
+      tools_called: [warehouse_list, inventory_balance]
+      grounded_numbers: true
+      must_not_mention: ["which item"]
+      state:
+        filters: { warehouse_id: 1 }
+scripted_tools:
+  - tool: inventory_balance
+    match_input: { search: "rice" }
+    output:
+      count: 2
+      total_on_hand: 195
+      balances:
+        - item_id: 7
+          item_name: "Basmati Rice 25kg"
+          sku: "RICE-25KG"
+          warehouse: { id: 1, name: "Main Store", code: "MAIN" }
+          on_hand_qty: 120
+          reserved_qty: 20
+          available_qty: 100
+          uom: { symbol: "bag" }
+          lot: null
+        - item_id: 7
+          item_name: "Basmati Rice 25kg"
+          sku: "RICE-25KG"
+          warehouse: { id: 2, name: "Backup Store", code: "BACK" }
+          on_hand_qty: 75
+          reserved_qty: 0
+          available_qty: 75
+          uom: { symbol: "bag" }
+          lot: null
+  - tool: warehouse_list
+    output:
+      count: 2
+      warehouses:
+        - { id: 1, name: "Main Store", code: "MAIN" }
+        - { id: 2, name: "Backup Store", code: "BACK" }
+  - tool: inventory_balance
+    match_input: { search: "rice", warehouse_id: 1 }
+    output:
+      count: 1
+      total_on_hand: 120
+      balances:
+        - item_id: 7
+          item_name: "Basmati Rice 25kg"
+          sku: "RICE-25KG"
+          warehouse: { id: 1, name: "Main Store", code: "MAIN" }
+          on_hand_qty: 120
+          reserved_qty: 20
+          available_qty: 100
+          uom: { symbol: "bag" }
+          lot: null
+fixture: demo_restaurant

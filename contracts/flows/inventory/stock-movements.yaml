@@ -1,0 +1,44 @@
+# Validates against contracts/flows/flow.schema.json
+id: inventory.stock-movements
+version: 1
+module: inventory
+title: Understand stock movements
+audience: tenant_user
+summary: >
+  Inventory movements are an append-only ledger of stock in/out per item.
+  Receipts add stock (direction "in"), issues and completed sales remove it
+  (direction "out"). Balances are the point-in-time result; movements are the
+  history that explains how a balance got there.
+prerequisites:
+  - Item exists and is stockable (see catalog.create-item)
+permissions:
+  - inventory.inventory-movements.list
+steps:
+  - screen: Inventory > Movements
+    route: /inventory/movements
+    action: Filter by item to see its in/out history
+  - screen: Inventory > Receipts
+    route: /inventory/receipts
+    action: Record incoming stock — creates an "in" movement
+  - screen: Inventory > Issues
+    route: /inventory/issues
+    action: Record outgoing stock — creates an "out" movement
+related_ai_tools:
+  - inventory_movements
+related_flows:
+  - inventory.check-stock
+common_questions:
+  - What happened to this item recently?
+  - How do stock movements work?
+  - What changed since last week?
+  - Where did our stock go?
+common_errors:
+  - symptom: A physical stock change is missing from the movement list
+    cause: >-
+      Movements exist only when entered in the system; the timestamp is the
+      recording time, not the physical event time.
+    resolution: Check whether the receipt/issue was actually entered; enter it if not
+notes: >
+  The assistant currently shows the last 20 movements for an item and cannot
+  filter by date range yet; it discloses when a list is capped (maintainers:
+  the date_range extension is doc 16 §5.2 / doc 18 §3).
