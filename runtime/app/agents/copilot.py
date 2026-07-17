@@ -70,6 +70,8 @@ async def run_copilot(
     tenant_id: str,
     user_id: int,
     session_id: int,
+    runtime_session_id: str,
+    domain: str,
     message: str,
     messages: list[dict[str, str]],
     conversation_state: dict[str, Any],
@@ -137,6 +139,8 @@ async def run_copilot(
             tenant_id=tenant_id,
             user_id=user_id,
             session_id=session_id,
+            runtime_session_id=runtime_session_id,
+            domain=domain,
             conversation_state=conversation_state,
         )
         async for event in handled:
@@ -193,6 +197,8 @@ async def run_copilot(
             yield ToolStarted(call_id=call.call_id, name=call.name, params=call.arguments)
             started = time.perf_counter()
             output = await laravel.execute_tool(
+                runtime_session_id=runtime_session_id,
+                domain=domain,
                 tenant_id=tenant_id,
                 user_id=user_id,
                 session_id=session_id,
@@ -229,6 +235,8 @@ async def execute_ui_action(
     tenant_id: str,
     user_id: int,
     session_id: int,
+    runtime_session_id: str,
+    domain: str,
     conversation_state: dict[str, Any],
 ):
     if ui_action.get("type") != "run_tool":
@@ -246,6 +254,8 @@ async def execute_ui_action(
     yield ToolStarted(call_id=call_id, name=tool_name, params=tool_input)
     started = time.perf_counter()
     output = await laravel.execute_tool(
+        runtime_session_id=runtime_session_id,
+        domain=domain,
         tenant_id=tenant_id,
         user_id=user_id,
         session_id=session_id,

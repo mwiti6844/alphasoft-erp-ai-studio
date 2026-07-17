@@ -139,6 +139,8 @@ async def test_ui_action_runs_tool_without_provider_request():
             tenant_id="tenant-1",
             user_id=1,
             session_id=1,
+            runtime_session_id="runtime-session-1",
+            domain="shop.localhost",
             message="Recent movements",
             messages=[],
             conversation_state={"focused_entity_type": "catalog_item", "focused_entity_id": 7},
