@@ -14,6 +14,8 @@ class LaravelToolClient:
     async def execute_tool(
         self,
         *,
+        runtime_session_id: str,
+        domain: str,
         tenant_id: str,
         user_id: int,
         session_id: int,
@@ -22,23 +24,56 @@ class LaravelToolClient:
     ) -> dict[str, Any]:
         async with httpx.AsyncClient(timeout=self.timeout_seconds) as client:
             response = await client.post(
-                f"{self.base_url}/api/internal/ai/tools/{tool_name}/execute",
+                f"{self.base_url}/api/internal/ai/mcp/tools/call",
                 headers={
                     "x-ai-runtime-token": self.shared_secret,
                     "accept": "application/json",
                     "content-type": "application/json",
                 },
                 json={
+                    "runtime_session_id": runtime_session_id,
+                    "domain": domain,
+                    "name": tool_name,
+                    "arguments": tool_input,
                     "tenant_id": tenant_id,
                     "user_id": user_id,
                     "session_id": session_id,
-                    "input": tool_input,
                 },
             )
         response.raise_for_status()
         payload = response.json()
         if isinstance(payload, dict) and "data" in payload:
-            return payload["data"]
+            data = payload["data"]
+            if isinstance(data, dict) and "output" in data and isinstance(data["output"], dict):
+                return data["output"]
+            if isinstance(data, dict):
+                return data
         if isinstance(payload, dict):
             return payload
         raise RuntimeError("Laravel returned a non-object tool response")
+
+    async def list_tools(
+        self,
+        *,
+        runtime_session_id: str,
+        domain: str,
+    ) -> list[dict[str, Any]]:
+        async with httpx.AsyncClient(timeout=self.timeout_seconds) as client:
+            response = await client.post(
+                f"{self.base_url}/api/internal/ai/mcp/tools/list",
+                headers={
+                    "x-ai-runtime-token": self.shared_secret,
+                    "accept": "application/json",
+                    "content-type": "application/json",
+                },
+                json={
+                    "runtime_session_id": runtime_session_id,
+                    "domain": domain,
+                },
+            )
+        response.raise_for_status()
+        payload = response.json()
+        data = payload.get("data") if isinstance(payload, dict) else None
+        if isinstance(data, dict) and isinstance(data.get("tools"), list):
+            return data["tools"]
+        return []
