@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import hmac
+from typing import Annotated
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Header, HTTPException, Request
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.agents.copilot import run_copilot
 from app.streaming.sse import async_events_to_sse
@@ -14,6 +15,32 @@ router = APIRouter(prefix="/api", tags=["chat"])
 
 
 class ChatRequest(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "tenant_id": "local",
+                "user_id": 1,
+                "session_id": 1,
+                "runtime_session_id": "test-runtime-session",
+                "domain": "tenant.localhost",
+                "module_scope": "inventory",
+                "message": "Say one short sentence confirming you are ready for inventory questions.",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": "Say one short sentence confirming you are ready for inventory questions.",
+                    }
+                ],
+                "conversation_state": {},
+                "ui_action": None,
+                "user_memory": {},
+                "tool_definitions": [],
+                "max_tokens": 256,
+                "temperature": 0.1,
+            }
+        }
+    )
+
     tenant_id: str = Field(min_length=1, max_length=128)
     user_id: int = Field(gt=0)
     session_id: int = Field(gt=0)
@@ -45,9 +72,13 @@ class ChatRequest(BaseModel):
 
 
 @router.post("/chat")
-async def chat(body: ChatRequest, request: Request) -> StreamingResponse:
+async def chat(
+    body: ChatRequest,
+    request: Request,
+    x_ai_runtime_token: Annotated[str, Header(alias="x-ai-runtime-token")] = "",
+) -> StreamingResponse:
     settings = request.app.state.settings
-    received = request.headers.get("x-ai-runtime-token", "")
+    received = x_ai_runtime_token
     expected = settings.ai_runtime_shared_secret
 
     if not expected or not hmac.compare_digest(received, expected):
