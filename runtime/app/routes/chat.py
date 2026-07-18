@@ -44,7 +44,7 @@ class ChatRequest(BaseModel):
     tenant_id: str = Field(min_length=1, max_length=128)
     user_id: int = Field(gt=0)
     session_id: int = Field(gt=0)
-    runtime_session_id: str = Field(min_length=1, max_length=64)
+    runtime_session_id: str = Field(min_length=1, max_length=128)
     domain: str = Field(min_length=1, max_length=255)
     module_scope: str = Field(min_length=1, max_length=64)
     message: str = Field(min_length=1, max_length=4000)
