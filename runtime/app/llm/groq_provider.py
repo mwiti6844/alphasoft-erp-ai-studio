@@ -134,10 +134,17 @@ def _parse_tool_call(call: dict[str, Any]) -> ToolCallPart:
         raise ProviderError(
             PROVIDER_NAME, f"model returned malformed tool arguments for {name}"
         ) from exc
+    # Llama/Groq emit `null` or `[]` for no-argument tools; treat those as "no arguments".
+    if arguments is None or arguments == []:
+        arguments = {}
     if not isinstance(arguments, dict):
         raise ProviderError(
             PROVIDER_NAME, f"model returned non-object tool arguments for {name}"
         )
+    # Llama fills *optional* params with `null`; strict validators reject the
+    # echoed-back call (`expected integer, but got null`). A null optional
+    # argument carries no information, so drop it.
+    arguments = {key: value for key, value in arguments.items() if value is not None}
     return ToolCallPart(call_id=str(call.get("id") or ""), name=name, arguments=arguments)
 
 
