@@ -37,6 +37,10 @@ Rules:
 - If a tool returns empty data, say that clearly.
 - Do not propose direct destructive actions.
 - Keep answers concise and operational.
+- The UI already renders tool results as structured tables and cards above your
+  reply, so do NOT reproduce that data as a markdown table or a row-by-row list.
+  Narrate the insight instead: highlights, comparisons, outliers, and what to do
+  next. Light markdown (short bullets, bold for emphasis) is fine.
 """
 
 
