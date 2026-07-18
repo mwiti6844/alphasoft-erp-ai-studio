@@ -6,8 +6,8 @@ are a request/response pair); the **frontend** is independent.
 | Repo | Branch pushed | Deploys via |
 |---|---|---|
 | `alphasoft-erp-ai-studio` (AI runtime) | `dev` | Rebuild the runtime Docker image on the VPS |
-| `alphasoft-backend` | `feature/ai-runtime-backend-integration` | PR → `main` (⚠️ auto-deploys prod) |
-| `alpaerpfrontend-1` | `feature/ai-chat-ui-integration` | PR → your normal frontend pipeline |
+| `alphasoft-backend` | `feature/ai-runtime-backend-integration` | PR → `dev` ([#15](https://github.com/Geekigen/alphasoft-backend/pull/15)); prod = later `dev` → `main` |
+| `alpaerpfrontend-1` | `feature/ai-chat-ui-integration` | PR → `dev` ([#54](https://github.com/Geekigen/alpaerpfrontend/pull/54)) |
 
 ---
 
@@ -34,34 +34,20 @@ proxies). Requires `runtime/.env` with `GROQ_API_KEY` and, for fallback,
 
 ## 2. Backend
 
-The change is on a **feature branch**. Open a PR into `main` and merge when
-reviewed.
+PR **[#15](https://github.com/Geekigen/alphasoft-backend/pull/15)** targets
+`dev` (the repo default/integration branch). Merging into `dev` is safe — it
+does **not** deploy production.
 
-> ⚠️ **`main` auto-deploys to production** (`.github/workflows/deploy-production.yml`).
-> Do not push/merge to `main` casually — merge the PR only when you intend to
-> ship. The runtime (step 1) should be deployed first or together, since the
-> backend now sends `{}`-shaped payloads the older runtime already accepts, and
-> the new runtime needs the backend's normalized tool schemas for Groq.
-
-```bash
-gh pr create --repo Geekigen/alphasoft-backend \
-  --base main --head feature/ai-runtime-backend-integration \
-  --title "fix(ai): send JSON objects to the Python runtime" \
-  --body-file docs/changes/2026-07-18-copilot-fixes/backend.md
-```
+> ⚠️ **Production deploys on push to `main`** (`.github/workflows/deploy-production.yml`).
+> Promote to prod as a **separate, deliberate** `dev` → `main` PR/merge, and
+> deploy the AI runtime (step 1) first or together — the new runtime relies on
+> the backend's normalized (`{}`) tool schemas for Groq.
 
 ## 3. Frontend
 
-Independent of the backend/runtime. Open a PR and merge; the pipeline installs
-deps (`react-markdown`, `remark-gfm` are in `package.json`) and rebuilds.
-
-```bash
-gh pr create --repo Geekigen/alpaerpfrontend \
-  --base dev --head feature/ai-chat-ui-integration \
-  --title "feat(ai): render copilot messages as markdown" \
-  --body-file docs/changes/2026-07-18-copilot-fixes/frontend.md
-```
-`npm ci` on the build host picks up the new deps; no config changes required.
+Independent of the backend/runtime. PR **[#54](https://github.com/Geekigen/alpaerpfrontend/pull/54)**
+targets `dev`; merge when reviewed. `npm ci` on the build host picks up the new
+deps (`react-markdown`, `remark-gfm`); no config changes required.
 
 ---
 
