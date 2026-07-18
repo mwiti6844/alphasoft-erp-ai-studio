@@ -32,7 +32,8 @@ def events_to_sse(events: Iterable[object]) -> Iterator[str]:
             elif isinstance(event, StatePatch):
                 yield frame("state_patch", event.values)
     except Exception as exc:
-        yield frame("error", {"message": f"The AI runtime hit an error: {exc}"})
+        detail = str(exc) or exc.__class__.__name__
+        yield frame("error", {"message": f"The AI runtime hit an error: {detail}"})
     yield frame("done", {})
 
 
@@ -57,5 +58,6 @@ async def async_events_to_sse(events: AsyncIterable[object]):
             elif isinstance(event, StatePatch):
                 yield frame("state_patch", event.values)
     except Exception as exc:
-        yield frame("error", {"message": f"The AI runtime hit an error: {exc}"})
+        detail = str(exc) or exc.__class__.__name__
+        yield frame("error", {"message": f"The AI runtime hit an error: {detail}"})
     yield frame("done", {})
