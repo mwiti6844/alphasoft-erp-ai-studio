@@ -99,6 +99,12 @@ def map_stop_reason(stop_reason: str | None) -> StopReason:
     return _STOP_REASON_MAP.get(stop_reason or "", StopReason.OTHER)
 
 
+def _accepts_temperature(model: str) -> bool:
+    """Claude 5-family models manage their own sampling and reject `temperature`."""
+    name = model.lower()
+    return not any(tag in name for tag in ("sonnet-5", "opus-5", "haiku-5", "fable-5"))
+
+
 class AnthropicProvider:
     name = PROVIDER_NAME
 
@@ -114,15 +120,20 @@ class AnthropicProvider:
         )
 
     async def complete(self, request: CompletionRequest) -> CompletionResponse:
+        # Claude 5-family models (e.g. claude-sonnet-5) deprecate `temperature`
+        # and reject it with a 400; only send it to models that still accept it.
+        create_kwargs: dict[str, Any] = {
+            "model": self.model,
+            "max_tokens": request.max_tokens,
+            "system": request.system,
+            "messages": build_messages(request.messages),
+            "tools": build_tools(request),
+        }
+        if _accepts_temperature(self.model):
+            create_kwargs["temperature"] = request.temperature
+
         try:
-            response = await self._client.messages.create(
-                model=self.model,
-                max_tokens=request.max_tokens,
-                temperature=request.temperature,
-                system=request.system,
-                messages=build_messages(request.messages),
-                tools=build_tools(request),
-            )
+            response = await self._client.messages.create(**create_kwargs)
         except anthropic.APIStatusError as exc:
             raise ProviderError(
                 PROVIDER_NAME, f"{exc.message} ({exc.status_code})", status_code=exc.status_code
