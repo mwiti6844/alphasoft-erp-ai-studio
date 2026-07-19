@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AlphaSoft AI — Agent Map (one-pager)</title>
+<style>
+  :root{
+    --ink:#1a1f2b; --muted:#5b6472; --line:#d7dce4; --bg:#fff; --panel:#f7f9fc;
+    --read:#2e7d5b; --readbg:#e7f4ee;      /* July / read-only */
+    --draft:#b5761d; --draftbg:#fbf1e0;    /* post-July / draft */
+    --later:#5a5f6b; --laterbg:#eef0f4;    /* later */
+    --ctrl:#2b4b8f; --ctrlbg:#e9eefb;      /* control plane */
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#eceef2;color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .page{width:1080px;margin:18px auto;background:var(--bg);padding:26px 30px;border-radius:10px;
+    box-shadow:0 1px 4px rgba(0,0,0,.08)}
+  h1{font-size:20px;margin:0 0 2px}
+  .sub{color:var(--muted);font-size:12.5px;margin:0 0 14px}
+  .banner{display:flex;gap:10px;align-items:stretch;margin:0 0 16px}
+  .banner .b{flex:1;border:1px solid var(--line);border-radius:8px;padding:9px 12px;background:var(--panel)}
+  .banner .b b{font-size:12px;letter-spacing:.02em;text-transform:uppercase;color:var(--muted)}
+  .banner .b p{margin:3px 0 0;font-size:13px;line-height:1.35}
+  .arrow{align-self:center;color:var(--muted);font-size:18px;font-weight:700}
+  h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+    margin:16px 0 8px;border-bottom:1px solid var(--line);padding-bottom:5px}
+  .grid{display:grid;gap:9px}
+  .cp{grid-template-columns:repeat(5,1fr)}
+  .sp{grid-template-columns:repeat(3,1fr)}
+  .card{border:1px solid var(--line);border-radius:8px;padding:9px 11px;background:#fff}
+  .card .t{font-weight:650;font-size:13px;line-height:1.2}
+  .card .d{color:var(--muted);font-size:11.5px;line-height:1.3;margin-top:3px}
+  .card .m{display:inline-block;margin-top:6px;font-size:10.5px;font-weight:650;
+    padding:1px 7px;border-radius:20px}
+  .lvl-read{background:var(--readbg);color:var(--read)}
+  .lvl-draft{background:var(--draftbg);color:var(--draft)}
+  .lvl-later{background:var(--laterbg);color:var(--later)}
+  .ctrl{border-color:#c9d5f2;background:var(--ctrlbg)}
+  .ctrl .t{color:var(--ctrl)}
+  .flow{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:8px 0 4px;
+    font-size:12px}
+  .flow .step{border:1px solid var(--line);border-radius:6px;padding:6px 10px;background:var(--panel)}
+  .flow .step.hi{background:#fff;border-color:#c9d5f2;color:var(--ctrl);font-weight:650}
+  .flow .step.human{background:var(--readbg);border-color:#bfe0cf;color:var(--read);font-weight:650}
+  .flow .a{color:var(--muted);font-weight:700}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-size:11.5px;color:var(--muted)}
+  .legend .k{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .foot{margin-top:14px;font-size:11px;color:var(--muted);border-top:1px solid var(--line);padding-top:8px}
+  @media print{body{background:#fff}.page{box-shadow:none;margin:0;width:auto}}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>AlphaSoft AI — Agent Map</h1>
+  <p class="sub">One rule layer, two planes. For the David &amp; Denis session · 2026-07-18 · see ai-planning/26 &amp; /27</p>
+
+  <div class="banner">
+    <div class="b"><b>BRE — enforces</b><p>Denis's fraud / shift / access / adjustment / credit rules. <b>Blocks &amp; authorizes.</b> A model can never override a hard rule.</p></div>
+    <div class="arrow">→</div>
+    <div class="b"><b>AI — consumes</b><p>Reads the active rules. <b>Detects, narrates, dedups, drafts.</b> Never enforces, never applies sensitive writes directly.</p></div>
+    <div class="arrow">→</div>
+    <div class="b"><b>Human — approves</b><p>Challenge-response on every draft: intent · evidence · blast radius · rollback. Approve / edit / reject, all audited.</p></div>
+  </div>
+
+  <h2>Control plane — built once, every module inherits</h2>
+  <div class="grid cp">
+    <div class="card ctrl"><div class="t">Orchestrator (S1)</div><div class="d">Picks agent/tool/workflow next; owns multi-step state; opens approvals; enforces step budget.</div></div>
+    <div class="card ctrl"><div class="t">Governance gate (S6)</div><div class="d">Tenant isolation, permission triples, AI access tiers, budget, audit completeness.</div></div>
+    <div class="card ctrl"><div class="t">BRE evaluator</div><div class="d">Runs hard/soft rules → pass / warn / requires-approval + audit refs.</div></div>
+    <div class="card ctrl"><div class="t">Grounding verifier (S4)</div><div class="d">Every narrated number ⊆ tool payload. Blocks invented figures.</div></div>
+    <div class="card ctrl"><div class="t">Safety screen</div><div class="d">Treats input, tool output &amp; uploads as hostile until cleared. Quarantines docs.</div></div>
+  </div>
+
+  <h2>Specialists — scoped, plugged into workflows (no agent holds a write credential)</h2>
+  <div class="grid sp">
+    <div class="card"><div class="t">Analytics</div><div class="d">Top/lagging/summary/reorder candidates. U1, U5.</div><span class="m lvl-read">read · July</span></div>
+    <div class="card"><div class="t">Audit / investigation</div><div class="d">Who did what, when, at what cost. User-mapped stock movements. U2.</div><span class="m lvl-read">read · July</span></div>
+    <div class="card"><div class="t">Anomaly / alert</div><div class="d">One deduped, explained alert per threshold breach. U3.</div><span class="m lvl-read">rec · July→Next</span></div>
+    <div class="card"><div class="t">Knowledge / onboarding</div><div class="d">Guided setup + "how do I…". U4.</div><span class="m lvl-read">read · Next</span></div>
+    <div class="card"><div class="t">Catalog steward</div><div class="d">Missing prices, dup SKUs, bad units → cleanup drafts. U6.</div><span class="m lvl-draft">draft · Next→C</span></div>
+    <div class="card"><div class="t">Reconciliation</div><div class="d">Stock-take / GRN variance → adjustment drafts. U7. <b>First write.</b></div><span class="m lvl-draft">draft · Phase C</span></div>
+    <div class="card"><div class="t">Document intelligence</div><div class="d">Invoice / delivery-note → extract → 3-way match → draft. U8.</div><span class="m lvl-draft">draft · Phase C</span></div>
+    <div class="card"><div class="t">Credit / AR</div><div class="d">Aging, credit-limit flags, draft reminders (consent-gated). U9.</div><span class="m lvl-draft">draft · Phase C</span></div>
+    <div class="card"><div class="t">Procurement</div><div class="d">Reorder → draft PO. U11. ⚠ PO write-action unverified.</div><span class="m lvl-later">draft · Phase C?</span></div>
+  </div>
+
+  <h2>The write path — every draft rides this, no exceptions</h2>
+  <div class="flow">
+    <span class="step">Specialist proposes</span><span class="a">→</span>
+    <span class="step hi">BRE evaluate</span><span class="a">→</span>
+    <span class="step hi">Grounding check</span><span class="a">→</span>
+    <span class="step">ai_suggestion (draft)</span><span class="a">→</span>
+    <span class="step human">Human approve</span><span class="a">→</span>
+    <span class="step">Apply via standard action + idempotency + audit</span>
+  </div>
+
+  <div class="legend">
+    <span class="k"><span class="dot" style="background:var(--ctrlbg);border:1px solid #c9d5f2"></span> Control plane</span>
+    <span class="k"><span class="dot" style="background:var(--readbg)"></span> read / rec — ship July</span>
+    <span class="k"><span class="dot" style="background:var(--draftbg)"></span> draft — post-July (needs apply-flow + BRE)</span>
+    <span class="k"><span class="dot" style="background:var(--laterbg)"></span> lower confidence / later</span>
+  </div>
+
+  <p class="foot"><b>Line for the room:</b> the system enforces the rules; the AI watches, explains, and prepares the work. BRE blocks, AI flags. · July slice = Analytics + Audit copilot + Anomaly narration, read-only, on the shared env.</p>
+</div>
+</body>
+</html>
